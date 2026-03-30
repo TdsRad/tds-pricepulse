@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDS Preisanalyse</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--surface:#ffffff;--surface2:#f0efe9;--border:#e2e0d8;--border2:#ccc9be;
+  --text:#1a1a17;--text2:#6b6a62;--text3:#9e9d95;
+  --red:#c0392b;--green:#1a7a45;--indigo:#4338ca;--indigo-light:#eef2ff;--indigo-border:#c7d2fe;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+/* LAYOUT */
+header{background:#111;color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+nav{display:flex;gap:2px}
+nav button{background:none;border:none;color:rgba(255,255,255,.55);font-size:11px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;padding:7px 13px;cursor:pointer;transition:.15s;border-radius:5px;display:flex;align-items:center;gap:5px;font-family:inherit}
+nav button:hover{color:#fff;background:rgba(255,255,255,.1)}
+nav button.active{background:#fff;color:#111}
+main{max-width:1200px;margin:0 auto;padding:28px 24px}
+.page{display:none}.page.active{display:block}
+
+/* TYPOGRAPHY */
+h1{font-size:24px;font-weight:600;letter-spacing:-.01em}
+.subtitle{font-size:13px;color:var(--text2);margin-top:5px}
+.section-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:24px 0 10px;display:flex;align-items:center;gap:8px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.stat-val{font-size:28px;font-weight:600;letter-spacing:-.02em}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* GRIDS */
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:.15s;border:1px solid var(--border2);background:transparent;color:var(--text);font-family:inherit}
+.btn:hover{background:var(--surface2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:#111;color:#fff;border-color:#111}
+.btn-primary:hover:not(:disabled){background:#333;border-color:#333}
+.btn-ai{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none}
+.btn-ai:hover:not(:disabled){background:linear-gradient(135deg,#4338ca,#6d28d9);filter:brightness(1.1)}
+.ic-btn{width:28px;height:28px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text2);transition:.15s;font-family:inherit}
+.ic-btn:hover{background:var(--surface2);color:var(--text)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.bg{background:var(--surface2);color:var(--text2)}
+.br{background:#fde8e8;color:#991b1b}
+.bgr{background:#d1fae5;color:#065f46}
+.bb{background:#dbeafe;color:#1e40af}
+.ba{background:#fef3c7;color:#92400e}
+
+/* FORMS */
+label.fl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;display:block}
+input,select,textarea{height:36px;padding:0 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;width:100%;transition:.15s}
+input:focus,select:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+textarea{height:auto;padding:9px 11px;resize:none}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+/* MISC */
+.red{color:var(--red)}.green{color:var(--green)}
+.empty{padding:40px;text-align:center;color:var(--text2);font-size:13px}
+.tag{display:inline-block;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:500;background:var(--surface2);color:var(--text2);margin-right:3px}
+.divider{border:none;border-top:1px solid var(--border);margin:9px 0}
+.row-item{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.row-item:last-child{border-bottom:none}
+
+/* URL IMPORT */
+.url-panel{background:var(--indigo-light);border:1px solid var(--indigo-border);border-radius:var(--radius);padding:18px;margin-top:20px}
+.url-panel-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.url-row{display:flex;gap:10px}
+.url-row input{flex:1;border-color:var(--indigo-border)}
+.extract-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:14px}
+.ai-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:3px 10px;border-radius:20px;background:#ede9fe;color:#5b21b6;font-weight:600}
+.eg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.eg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.prog-wrap{margin-top:12px}
+.prog-label{font-size:11px;color:var(--indigo);margin-bottom:5px;font-weight:500}
+.prog-bar{height:3px;background:var(--indigo-border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px;transition:.4s}
+
+/* SPINNER */
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+.spin-dark{border-color:rgba(0,0,0,.12);border-top-color:#333}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* SWITCH */
+.switch{width:38px;height:22px;border-radius:11px;background:var(--border2);border:none;cursor:pointer;position:relative;transition:.2s;flex-shrink:0}
+.switch.on{background:#111}
+.switch::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+.switch.on::after{left:19px}
+
+/* PRODUCT CARDS */
+.prod-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px;transition:.2s}
+.prod-card:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.img-ph{width:42px;height:42px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.img-ph img{width:100%;height:100%;object-fit:cover}
+
+/* SEARCH RESULTS */
+.price-result{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:.15s;margin-bottom:6px}
+.price-result:hover{border-color:var(--border2)}
+.price-result.cheaper{border-left:3px solid var(--red)}
+.price-result.expensive{border-left:3px solid var(--green)}
+.price-result.equal{border-left:3px solid var(--border2)}
+
+/* COMPETITOR CARD */
+.comp-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border)}
+.comp-row:last-child{border-bottom:none}
+.comp-av{width:34px;height:34px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text2);flex-shrink:0}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:11px 18px;border-radius:var(--radius-sm);font-size:12px;z-index:9999;opacity:0;transition:.3s;pointer-events:none;max-width:340px;font-weight:500}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="24" height="24" viewBox="0 0 28 28"><rect width="28" height="28" rx="4" fill="white"/><rect x="11" y="4" width="6" height="20" fill="#111"/><rect x="4" y="11" width="20" height="6" fill="#111"/></svg>
+    TDS Preisanalyse
+  </div>
+  <nav>
+    <button class="active" onclick="nav('dashboard',this)">⊞ Dashboard</button>
+    <button onclick="nav('competitors',this)">◉ Webseiten</button>
+    <button onclick="nav('products',this)">▣ Produkte</button>
+    <button onclick="nav('analysis',this)">◈ Preisanalyse</button>
+    <button onclick="nav('reporting',this)">⊟ Reporting</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- DASHBOARD -->
+<div id="p-dashboard" class="page active">
+  <h1>Dashboard</h1>
+  <p class="subtitle">Übersicht deiner Wettbewerbspreise</p>
+  <div class="g4">
+    <div class="stat-card"><div class="stat-label">Webseiten</div><div class="stat-val" id="d-comp">0</div><div class="stat-sub">Aktive Konkurrenten</div></div>
+    <div class="stat-card"><div class="stat-label">Produkte</div><div class="stat-val" id="d-prod">0</div><div class="stat-sub">Im Vergleich</div></div>
+    <div class="stat-card"><div class="stat-label">Günstiger als wir</div><div class="stat-val red" id="d-cheap">0</div><div class="stat-sub" id="d-cheap-sub">von 0 Einträgen</div></div>
+    <div class="stat-card"><div class="stat-label">Teurer als wir</div><div class="stat-val green" id="d-exp">0</div><div class="stat-sub" id="d-exp-sub">von 0 Einträgen</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-head"><span>⚠ Grosse Abweichungen (≥10%)</span><span id="d-big-cnt" class="badge bg">0</span></div>
+      <div id="d-deviations"><div class="empty">Noch keine Daten</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head">↘ Grösste Preisbedrohungen</div>
+      <div id="d-threats"><div class="empty">Kein Konkurrent ist günstiger</div></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+    <button class="btn" onclick="nav('competitors',document.querySelectorAll('nav button')[1])">◉ Webseiten verwalten</button>
+    <button class="btn" onclick="nav('products',document.querySelectorAll('nav button')[2])">▣ Produkte verwalten</button>
+    <button class="btn btn-primary" onclick="nav('analysis',document.querySelectorAll('nav button')[3])">◈ Zur Preisanalyse</button>
+  </div>
+</div>
+
+<!-- WEBSEITEN -->
+<div id="p-competitors" class="page">
+  <h1>Webseiten</h1>
+  <p class="subtitle">Verwalte die Konkurrenz-Webseiten für den Preisvergleich</p>
+  <div class="card" style="margin-top:20px">
+    <div class="card-head">Neue Webseite hinzufügen</div>
+    <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">
+      <div><label class="fl">Name</label><input id="comp-name" placeholder="z.B. Veloplus"></div>
+      <div><label class="fl">URL</label><input id="comp-url" type="url" placeholder="https://www.veloplus.ch"></div>
+      <div><label class="fl">Notiz (optional)</label><input id="comp-note" placeholder="Bemerkung..."></div>
+      <button class="btn btn-primary" onclick="addCompetitor()">+ Hinzufügen</button>
+    </div>
+  </div>
+  <div class="section-label">Erfasste Webseiten</div>
+  <div class="card" id="comp-list"><div class="empty">Noch keine Webseiten erfasst</div></div>
+</div>
+
+<!-- PRODUKTE -->
+<div id="p-products" class="page">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+    <div><h1>Produkte</h1><p class="subtitle">Shop-URL eingeben → KI befüllt automatisch → Konkurrenzpreise suchen</p></div>
+    <button class="btn btn-primary" style="margin-top:4px;white-space:nowrap" onclick="toggleUrlPanel()">+ Neues Produkt</button>
+  </div>
+
+  <div class="url-panel" id="url-panel" style="display:none">
+    <div class="url-panel-title">✦ KI-gestützte Produkt-Erfassung</div>
+    <div class="url-row">
+      <input id="prod-url-input" type="url" placeholder="https://www.beliebiger-shop.ch/produkt/... — beliebiger Shop-Link einfügen" onkeydown="if(event.key==='Enter')extractFromUrl()">
+      <button class="btn btn-ai" id="extract-btn" onclick="extractFromUrl()"><span id="ebi">✦ Analysieren</span></button>
+      <button class="btn" onclick="toggleUrlPanel()">✕</button>
+    </div>
+    <div id="extract-progress" style="display:none" class="prog-wrap">
+      <div class="prog-label" id="prog-label">Analysiere...</div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="extract-preview" id="extract-preview" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="ai-pill">✦ KI-Extraktion</div>
+          <span style="font-size:11px;color:var(--text2)">Felder prüfen und ggf. anpassen</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="saveProd()">Produkt speichern</button>
+          <button class="btn" onclick="cancelExtract()">Abbrechen</button>
+        </div>
+      </div>
+      <div class="eg3">
+        <div><label class="fl">Produktname *</label><input id="ef-name" placeholder="Produktname"></div>
+        <div><label class="fl">Marke</label><input id="ef-brand" placeholder="Marke"></div>
+        <div><label class="fl">Kategorie</label><input id="ef-cat" placeholder="Kategorie"></div>
+        <div><label class="fl">SKU / Artikelnummer</label><input id="ef-sku" placeholder="SKU"></div>
+        <div><label class="fl">Grösse / Variante</label><input id="ef-size" placeholder="z.B. 56, M, L"></div>
+        <div><label class="fl">Unser Preis (CHF) *</label><input id="ef-price" type="number" placeholder="0.00"></div>
+      </div>
+      <div class="eg2">
+        <div><label class="fl">EAN / Barcode</label><input id="ef-ean" placeholder="EAN"></div>
+        <div><label class="fl">Quell-URL</label><input id="ef-src-url" readonly style="color:var(--text2)"></div>
+      </div>
+      <div style="margin-top:10px">
+        <label class="fl">Bild-URL</label>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input id="ef-img" placeholder="https://..." oninput="updateImgPreview(this.value)">
+          <div id="ef-img-preview" style="width:52px;height:52px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden">🚲</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="prod-price-form-wrap" style="display:none;margin-top:14px">
+    <div class="card">
+      <div class="card-head">Konkurrenzpreis manuell erfassen: <strong id="ppf-prod-name"></strong></div>
+      <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+        <div><label class="fl">Konkurrent *</label><select id="ppf-comp"><option value="">-- Wählen --</option></select></div>
+        <div><label class="fl">Preis (CHF) *</label><input id="ppf-price" type="number" placeholder="0.00"></div>
+        <div><label class="fl">URL</label><input id="ppf-url" type="url" placeholder="https://..."></div>
+        <div><label class="fl">Promotion</label><input id="ppf-promo" placeholder="z.B. -10%"></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-primary" onclick="savePriceEntry()">Speichern</button>
+          <button class="btn" onclick="cancelPriceEntry()">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="search-results-panel" style="display:none;margin-top:14px">
+    <div class="card">
+      <div class="card-head">
+        <span id="srp-title">Preissuche</span>
+        <button class="ic-btn" onclick="document.getElementById('search-results-panel').style.display='none'">✕</button>
+      </div>
+      <div id="srp-content" style="padding:16px"></div>
+    </div>
+  </div>
+
+  <div id="prod-grid" class="g3" style="margin-top:20px">
+    <div class="empty" style="grid-column:1/-1">Noch keine Produkte. Klicke "+ Neues Produkt" oben rechts.</div>
+  </div>
+</div>
+
+<!-- ANALYSE -->
+<div id="p-analysis" class="page">
+  <h1>Preisanalyse</h1>
+  <p class="subtitle">Detaillierter Vergleich aller Konkurrenzpreise</p>
+  <div class="g4">
+    <div class="stat-card"><div class="stat-label">Vergleiche</div><div class="stat-val" id="a-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Günstiger als wir</div><div class="stat-val red" id="a-cheap">0</div></div>
+    <div class="stat-card"><div class="stat-label">Teurer als wir</div><div class="stat-val green" id="a-exp">0</div></div>
+    <div class="stat-card"><div class="stat-label">Signifikant (≥10%)</div><div class="stat-val" id="a-sig">0</div></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+    <input type="text" id="a-search" placeholder="Suche Produkt oder Marke..." style="width:220px" oninput="renderAnalysis()">
+    <select id="a-cat" onchange="renderAnalysis()"><option value="">Alle Kategorien</option></select>
+    <select id="a-brand" onchange="renderAnalysis()"><option value="">Alle Marken</option></select>
+    <select id="a-comp" onchange="renderAnalysis()"><option value="">Alle Konkurrenten</option></select>
+  </div>
+  <div class="card" style="margin-top:16px;overflow-x:auto">
+    <table><thead><tr><th>Produkt</th><th>Marke</th><th>Kategorie</th><th>Unser Preis</th><th>Konkurrent</th><th>Konkurrenzpreis</th><th>Abweichung</th><th>%</th></tr></thead>
+    <tbody id="a-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- REPORTING -->
+<div id="p-reporting" class="page">
+  <h1>Reporting</h1>
+  <p class="subtitle">Preisverfolgung und Veränderungen</p>
+  <div class="card" style="margin-top:20px">
+    <div class="card-head"><span>👁 Beobachtungsliste</span><span id="r-watch-cnt" class="badge bg">0 / 0</span></div>
+    <div id="r-watchlist"><div class="empty">Keine Produkte vorhanden</div></div>
+  </div>
+  <div class="g3">
+    <div class="stat-card"><div class="stat-label">Snapshots gesamt</div><div class="stat-val" id="r-snaps">0</div></div>
+    <div class="stat-card"><div class="stat-label">Preisänderungen</div><div class="stat-val" id="r-changes">0</div></div>
+    <div class="stat-card"><div class="stat-label">Letzter Snapshot</div><div class="stat-val" style="font-size:17px" id="r-last">—</div></div>
+  </div>
+  <div class="section-label">Preisveränderungen</div>
+  <div class="card" id="r-changes-table"><div class="empty">Noch keine Preisveränderungen.</div></div>
+  <div class="section-label">Alle Snapshots</div>
+  <div class="card" id="r-snaps-table"><div class="empty">Noch keine Snapshots.</div></div>
+</div>
+
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const S={competitors:[],products:[],priceEntries:[],snapshots:[]};
+let priceEntryProdId=null,searchingProdId=null;
+
+function nav(page,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('p-'+page).classList.add('active');
+  btn.classList.add('active');
+  ({dashboard:renderDashboard,analysis:renderAnalysis,reporting:renderReporting,products:renderProducts,competitors:renderCompetitors})[page]?.();
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function fmt(n){return n!=null?'CHF '+Number(n).toFixed(2):'—'}
+function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'})}
+
+// ─── COMPETITORS ───
+function addCompetitor(){
+  const n=document.getElementById('comp-name').value.trim();
+  const u=document.getElementById('comp-url').value.trim();
+  if(!n||!u){toast('Name und URL sind Pflicht');return}
+  S.competitors.push({id:uid(),name:n,url:u,notes:document.getElementById('comp-note').value.trim()});
+  ['comp-name','comp-url','comp-note'].forEach(id=>document.getElementById(id).value='');
+  renderCompetitors();renderDashboard();toast('Webseite hinzugefügt ✓');
+}
+function renderCompetitors(){
+  const el=document.getElementById('comp-list');
+  if(!S.competitors.length){el.innerHTML='<div class="empty">Noch keine Webseiten erfasst</div>';return}
+  el.innerHTML=S.competitors.map(c=>`
+    <div class="comp-row">
+      <div class="comp-av">${c.name.slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${c.name}</div>
+        <a href="${c.url}" target="_blank" style="font-size:11px;color:var(--text2);text-decoration:none">${c.url}</a>
+        ${c.notes?`<div style="font-size:11px;color:var(--text3)">${c.notes}</div>`:''}
+      </div>
+      <button class="ic-btn" onclick="delComp('${c.id}')">🗑</button>
+    </div>`).join('');
+}
+function delComp(id){
+  if(!confirm('Webseite wirklich löschen?'))return;
+  S.competitors=S.competitors.filter(c=>c.id!==id);
+  renderCompetitors();renderDashboard();toast('Webseite entfernt');
+}
+
+// ─── URL EXTRACTION ───
+function toggleUrlPanel(){
+  const p=document.getElementById('url-panel');
+  const show=p.style.display==='none';
+  p.style.display=show?'block':'none';
+  if(show){setTimeout(()=>document.getElementById('prod-url-input').focus(),50)}
+}
+function setProgress(pct,label){
+  document.getElementById('extract-progress').style.display='block';
+  document.getElementById('prog-label').textContent=label;
+  document.getElementById('prog-fill').style.width=pct+'%';
+}
+function updateImgPreview(url){
+  const el=document.getElementById('ef-img-preview');
+  if(url&&url.startsWith('http')){el.innerHTML=`<img src="${url}" onerror="this.parentElement.innerHTML='🚲'">`}
+  else{el.innerHTML='🚲'}
+}
+
+async function extractFromUrl(){
+  const url=document.getElementById('prod-url-input').value.trim();
+  if(!url){toast('Bitte eine URL eingeben');return}
+  const btn=document.getElementById('extract-btn');
+  btn.disabled=true;
+  document.getElementById('ebi').innerHTML='<span class="spin"></span> Analysiere...';
+  document.getElementById('extract-preview').style.display='none';
+  setProgress(15,'URL wird analysiert...');
+
+  try{
+    setProgress(40,'KI extrahiert Produktdaten...');
+    const prompt=`Du bist ein Produkt-Daten-Extraktor für einen Schweizer Fahrrad-Importeur (TDS-RAD).
+
+Analysiere diese Produkt-URL und extrahiere alle erkennbaren Produktdaten:
+URL: ${url}
+
+Aus der URL-Struktur, dem Domainnamen und typischen Shop-Mustern erkennst du:
+- Produktname (aus URL-Slug oder Pfad)
+- Marke (aus URL oder bekannte Fahrradmarken: Trek, Specialized, Scott, Giant, Canyon, BMC, Orbea, etc.)
+- Kategorie (Rennrad, MTB, E-Bike, Gravelbike, Trekking, Komponenten, Bekleidung, Zubehör)
+- SKU/Artikelnummer (Zahlen/Codes in der URL)
+- Grösse (S/M/L/XL oder 50/54/56/58 bei Fahrrädern)
+- Preis CHF (schätze basierend auf Kategorie und Marke realistisch)
+- EAN (falls erkennbar)
+
+Wichtig: Schätze fehlende Werte intelligent basierend auf Kontext.
+Preis muss realistisch für CH-Markt sein (z.B. E-Bike 2500-8000, Rennrad 1500-12000, MTB 800-10000).
+
+Antworte NUR mit diesem JSON (kein anderer Text, keine Markdown-Blöcke):
+{"name":"","brand":"","category":"","sku":"","size":"","price":0,"ean":"","image_url":"","source_domain":""}`;
+
+    const resp=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})
+    });
+    setProgress(75,'Daten werden verarbeitet...');
+    const data=await resp.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'{}';
+    let ex={};
+    try{ex=JSON.parse(text.replace(/```[\w]*|```/g,'').trim())}catch(e){}
+
+    document.getElementById('ef-name').value=ex.name||'';
+    document.getElementById('ef-brand').value=ex.brand||'';
+    document.getElementById('ef-cat').value=ex.category||'';
+    document.getElementById('ef-sku').value=ex.sku||'';
+    document.getElementById('ef-size').value=ex.size||'';
+    document.getElementById('ef-price').value=ex.price||'';
+    document.getElementById('ef-ean').value=ex.ean||'';
+    document.getElementById('ef-src-url').value=url;
+    document.getElementById('ef-img').value=ex.image_url||'';
+    updateImgPreview(ex.image_url||'');
+    setProgress(100,'Fertig!');
+    setTimeout(()=>{document.getElementById('extract-progress').style.display='none'},600);
+    document.getElementById('extract-preview').style.display='block';
+    document.getElementById('ef-name').focus();
+  }catch(err){
+    document.getElementById('extract-progress').style.display='none';
+    toast('Fehler: '+err.message);
+  }
+  btn.disabled=false;
+  document.getElementById('ebi').textContent='✦ Analysieren';
+}
+
+function cancelExtract(){
+  document.getElementById('extract-preview').style.display='none';
+  document.getElementById('prod-url-input').value='';
+}
+
+function saveProd(){
+  const name=document.getElementById('ef-name').value.trim();
+  const price=parseFloat(document.getElementById('ef-price').value);
+  if(!name){toast('Produktname ist Pflicht');return}
+  if(isNaN(price)||price<=0){toast('Bitte einen gültigen Preis eingeben');return}
+  const prod={
+    id:uid(),name,
+    brand:document.getElementById('ef-brand').value.trim(),
+    category:document.getElementById('ef-cat').value.trim(),
+    sku:document.getElementById('ef-sku').value.trim(),
+    size:document.getElementById('ef-size').value.trim(),
+    ean:document.getElementById('ef-ean').value.trim(),
+    our_price:price,
+    image_url:document.getElementById('ef-img').value.trim(),
+    source_url:document.getElementById('ef-src-url').value.trim(),
+    monitored:true
+  };
+  S.products.push(prod);
+  toggleUrlPanel();cancelExtract();
+  renderProducts();renderDashboard();
+  toast('Produkt gespeichert ✓');
+}
+
+// ─── PRICE SEARCH ───
+async function searchPrices(prodId){
+  const prod=S.products.find(p=>p.id===prodId);
+  if(!prod)return;
+  searchingProdId=prodId;renderProducts();
+  const panel=document.getElementById('search-results-panel');
+  const content=document.getElementById('srp-content');
+  document.getElementById('srp-title').textContent='✦ Preissuche: '+prod.name;
+  panel.style.display='block';
+  content.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;color:var(--text2);font-size:13px"><span class="spin spin-dark"></span> KI sucht Konkurrenzpreise — bekannte Shops + Web-Suche...</div>`;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  const compList=S.competitors.length?S.competitors.map(c=>`- ${c.name}: ${c.url}`).join('\n'):'(keine erfasst)';
+  const pInfo=`${prod.name}${prod.brand?' von '+prod.brand:''}${prod.sku?', SKU: '+prod.sku:''}${prod.ean?', EAN: '+prod.ean:''}${prod.category?', Kategorie: '+prod.category:''}`;
+
+  try{
+    const resp=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:2000,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:`Schweizer Fahrrad-Preisrecherche für TDS-RAD.
+
+Produkt: ${pInfo}
+Unser Preis: CHF ${prod.our_price}
+${prod.source_url?'Quell-Shop: '+prod.source_url:''}
+
+Bekannte Konkurrenten:
+${compList}
+
+Suche nach aktuellen Schweizer Preisen für dieses Produkt. Suche bei:
+1. Den bekannten Konkurrenten-Shops
+2. Anderen CH-Fahrradhändlern: veloplus.ch, brack.ch, galaxus.ch, bike24.ch, brüggli.ch, microspot.ch, digitec.ch
+
+Gib realistische, recherchierte Preise zurück.
+
+Antworte ABSCHLIESSEND nur mit einem JSON-Array (kein anderer Text):
+[{"competitor_name":"","competitor_url":"","price":0,"currency":"CHF","product_url":"","confidence":"high|medium|low","note":""}]`}]
+      })
+    });
+    const data=await resp.json();
+    const textBlock=data.content?.find(b=>b.type==='text');
+    const text=textBlock?.text||'[]';
+    let results=[];
+    try{
+      const match=text.match(/\[[\s\S]*\]/);
+      results=match?JSON.parse(match[0]):[];
+    }catch(e){results=[]}
+
+    if(!results.length){
+      content.innerHTML='<div class="empty">Keine Ergebnisse. Mehr Konkurrenten erfassen oder Produkt-Details ergänzen.</div>';
+      searchingProdId=null;renderProducts();return;
+    }
+
+    // Save results
+    let saved=0;
+    results.forEach(r=>{
+      if(!r.price||r.price<=0)return;
+      let compId=null;
+      const matched=S.competitors.find(c=>{
+        try{return r.competitor_url&&(r.competitor_url.includes(new URL(c.url).hostname)||c.name.toLowerCase()===r.competitor_name.toLowerCase())}catch{return false}
+      });
+      if(matched){compId=matched.id}
+      else{
+        const nc={id:uid(),name:r.competitor_name,url:r.competitor_url||'',notes:'Auto-erkannt'};
+        S.competitors.push(nc);compId=nc.id;
+      }
+      const ex=S.priceEntries.findIndex(e=>e.product_id===prodId&&e.competitor_id===compId);
+      const entry={id:uid(),product_id:prodId,competitor_id:compId,price:r.price,product_url:r.product_url||'',promotion:'',last_checked:new Date().toISOString(),confidence:r.confidence};
+      const prev=ex>=0?S.priceEntries[ex].price:null;
+      if(ex>=0)S.priceEntries[ex]=entry;else S.priceEntries.push(entry);
+      S.snapshots.unshift({id:uid(),product_id:prodId,competitor_id:compId,price:r.price,previous_price:prev,change:prev!==null?r.price-prev:0,change_percent:prev?((r.price-prev)/prev*100):0,snapshot_date:new Date().toISOString()});
+      saved++;
+    });
+
+    content.innerHTML=`
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        ${saved} Preiseinträge automatisch gespeichert
+      </div>
+      <div>${results.map(r=>{
+        const diff=r.price?r.price-prod.our_price:null;
+        const pct=diff&&prod.our_price?(diff/prod.our_price*100):null;
+        const cls=diff<0?'cheaper':diff>0?'expensive':'equal';
+        const cb=r.confidence==='high'?'bgr':r.confidence==='medium'?'ba':'bg';
+        return`<div class="price-result ${cls}">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">${r.competitor_name}</div>
+            ${r.product_url?`<a href="${r.product_url}" target="_blank" style="font-size:11px;color:var(--text2)">${r.product_url.slice(0,65)}${r.product_url.length>65?'...':''}</a>`:`<span style="font-size:11px;color:var(--text3)">${r.competitor_url||''}</span>`}
+            ${r.note?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${r.note}</div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:15px;font-weight:600">${fmt(r.price)}</div>
+            ${pct!=null?`<div class="${diff<0?'red':'green'}" style="font-size:11px;font-weight:500">${diff>0?'+':''}${diff.toFixed(2)} (${pct>0?'+':''}${pct.toFixed(1)}%)</div>`:''}
+            <span class="badge ${cb}" style="margin-top:3px">${r.confidence}</span>
+          </div>
+        </div>`}).join('')}</div>`;
+
+    renderProducts();renderDashboard();renderCompetitors();
+  }catch(err){
+    content.innerHTML=`<div class="empty">Fehler: ${err.message}</div>`;
+  }
+  searchingProdId=null;renderProducts();
+}
+
+// ─── MANUAL PRICE ENTRY ───
+function showPriceForm(pid){
+  priceEntryProdId=pid;
+  const prod=S.products.find(p=>p.id===pid);
+  document.getElementById('ppf-prod-name').textContent=prod.name;
+  document.getElementById('ppf-comp').innerHTML='<option value="">-- Wählen --</option>'+S.competitors.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  ['ppf-price','ppf-url','ppf-promo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prod-price-form-wrap').style.display='block';
+}
+function cancelPriceEntry(){document.getElementById('prod-price-form-wrap').style.display='none';priceEntryProdId=null}
+function savePriceEntry(){
+  const cid=document.getElementById('ppf-comp').value;
+  const price=parseFloat(document.getElementById('ppf-price').value);
+  if(!cid||isNaN(price)){toast('Konkurrent und Preis sind Pflicht');return}
+  const entry={id:uid(),product_id:priceEntryProdId,competitor_id:cid,price,product_url:document.getElementById('ppf-url').value.trim(),promotion:document.getElementById('ppf-promo').value.trim(),last_checked:new Date().toISOString()};
+  const ex=S.priceEntries.findIndex(e=>e.product_id===priceEntryProdId&&e.competitor_id===cid);
+  if(ex>=0)S.priceEntries[ex]=entry;else S.priceEntries.push(entry);
+  S.snapshots.unshift({id:uid(),product_id:priceEntryProdId,competitor_id:cid,price,previous_price:null,change:0,snapshot_date:new Date().toISOString()});
+  cancelPriceEntry();renderProducts();renderDashboard();toast('Preis gespeichert ✓');
+}
+function delPriceEntry(id){S.priceEntries=S.priceEntries.filter(e=>e.id!==id);renderProducts();renderDashboard()}
+function delProd(id){
+  if(!confirm('Produkt wirklich löschen?'))return;
+  S.products=S.products.filter(p=>p.id!==id);
+  S.priceEntries=S.priceEntries.filter(e=>e.product_id!==id);
+  renderProducts();renderDashboard();toast('Produkt gelöscht');
+}
+
+// ─── RENDER PRODUCTS ───
+function renderProducts(){
+  const el=document.getElementById('prod-grid');
+  const cmap=Object.fromEntries(S.competitors.map(c=>[c.id,c.name]));
+  if(!S.products.length){
+    el.innerHTML='<div class="empty" style="grid-column:1/-1">Noch keine Produkte. Klicke "+ Neues Produkt" und gib eine Shop-URL ein.</div>';return;
+  }
+  el.innerHTML=S.products.map(prod=>{
+    const entries=S.priceEntries.filter(e=>e.product_id===prod.id);
+    const minP=entries.length?Math.min(...entries.map(e=>e.price)):null;
+    const diff=minP!=null?minP-prod.our_price:null;
+    const diffPct=diff!=null&&prod.our_price?(diff/prod.our_price)*100:null;
+    const searching=searchingProdId===prod.id;
+    const imgHtml=prod.image_url?`<img src="${prod.image_url}" onerror="this.parentElement.innerHTML='🚲'">`: '🚲';
+    const priceList=entries.map(e=>{
+      const d=e.price-prod.our_price;const dp=prod.our_price?(d/prod.our_price*100):0;
+      return`<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:2px 0;gap:6px">
+        <span style="color:var(--text2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${cmap[e.competitor_id]||'?'}</span>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <span style="font-weight:600">${fmt(e.price)}</span>
+          <span class="${d<0?'red':'green'}" style="font-size:10px">(${dp>0?'+':''}${dp.toFixed(0)}%)</span>
+          ${e.promotion?`<span class="badge bb">${e.promotion}</span>`:''}
+          <button class="ic-btn" style="width:18px;height:18px;font-size:10px" onclick="delPriceEntry('${e.id}')">✕</button>
+        </div>
+      </div>`}).join('');
+    return`<div class="prod-card">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+        <div class="img-ph">${imgHtml}</div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:13px;font-weight:600;line-height:1.3">${prod.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${[prod.brand,prod.size].filter(Boolean).join(' · ')}</div>
+          ${prod.source_url?`<a href="${prod.source_url}" target="_blank" style="font-size:10px;color:#6366f1;text-decoration:none">↗ Quell-Shop</a>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
+        ${prod.category?`<span class="tag">${prod.category}</span>`:''}
+        ${prod.sku?`<span class="tag" style="font-family:'DM Mono',monospace;font-size:9px">${prod.sku}</span>`:''}
+        ${prod.ean?`<span class="tag" style="font-size:9px">EAN: ${prod.ean}</span>`:''}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+        <span style="color:var(--text2)">Unser Preis</span><strong>${fmt(prod.our_price)}</strong>
+      </div>
+      ${minP!=null?`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+        <span style="color:var(--text2)">Günstigster Konkurrent</span>
+        <div><strong>${fmt(minP)}</strong><span class="${diff<0?'red':'green'}" style="font-size:10px;margin-left:4px">(${diffPct>0?'+':''}${diffPct.toFixed(1)}%)</span></div>
+      </div>`:''}
+      <div class="divider"></div>
+      <div style="font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Konkurrenzpreise (${entries.length})</div>
+      ${priceList||'<div style="font-size:11px;color:var(--text3)">Noch keine</div>'}
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-ai" style="flex:1;font-size:10px;padding:7px 10px" onclick="searchPrices('${prod.id}')" ${searching?'disabled':''}>
+          ${searching?'<span class="spin"></span> Suche...':'✦ Preise suchen'}
+        </button>
+        <button class="ic-btn" onclick="showPriceForm('${prod.id}')" title="Manuell erfassen">+</button>
+        <button class="ic-btn" style="color:var(--red)" onclick="delProd('${prod.id}')" title="Löschen">🗑</button>
+      </div>
+    </div>`}).join('');
+}
+
+// ─── RENDER DASHBOARD ───
+function renderDashboard(){
+  const cmap=Object.fromEntries(S.competitors.map(c=>[c.id,c.name]));
+  const pmap=Object.fromEntries(S.products.map(p=>[p.id,p]));
+  document.getElementById('d-comp').textContent=S.competitors.length;
+  document.getElementById('d-prod').textContent=S.products.length;
+  const comps=S.priceEntries.map(pe=>{
+    const prod=pmap[pe.product_id];if(!prod||!prod.our_price)return null;
+    const dev=pe.price-prod.our_price;const devPct=(dev/prod.our_price)*100;
+    if(!isFinite(devPct)||Math.abs(devPct)>500)return null;
+    return{...pe,product:prod,deviation:dev,deviationPercent:devPct};
+  }).filter(Boolean);
+  const cheap=comps.filter(c=>c.deviation<0),exp=comps.filter(c=>c.deviation>0),sig=comps.filter(c=>Math.abs(c.deviationPercent)>=10);
+  document.getElementById('d-cheap').textContent=cheap.length;
+  document.getElementById('d-exp').textContent=exp.length;
+  document.getElementById('d-cheap-sub').textContent=`von ${comps.length} Einträgen`;
+  document.getElementById('d-exp-sub').textContent=`von ${comps.length} Einträgen`;
+  document.getElementById('d-big-cnt').textContent=sig.length;
+  document.getElementById('d-deviations').innerHTML=sig.length?sig.slice(0,8).map(c=>`<div class="row-item"><div><div style="font-size:13px;font-weight:600">${c.product.name}</div><div style="font-size:11px;color:var(--text2)">${cmap[c.competitor_id]||'?'}</div></div><div style="text-align:right"><div class="${c.deviation<0?'red':'green'}" style="font-size:13px;font-weight:600">${c.deviation>0?'+':''}CHF ${c.deviation.toFixed(2)}</div><div style="font-size:11px;color:${c.deviation<0?'var(--red)':'var(--green)'}">${c.deviationPercent>0?'+':''}${c.deviationPercent.toFixed(1)}%</div></div></div>`).join(''):'<div class="empty">Keine grossen Abweichungen</div>';
+  const threats=comps.filter(c=>c.deviation<0).sort((a,b)=>a.deviation-b.deviation).slice(0,5);
+  document.getElementById('d-threats').innerHTML=threats.length?threats.map((c,i)=>`<div class="row-item"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px;font-weight:600;color:var(--text3);width:20px">${i+1}</span><div><div style="font-size:13px;font-weight:600">${c.product.name}</div><div style="font-size:11px;color:var(--text2)">${cmap[c.competitor_id]||'?'} — CHF ${c.price.toFixed(2)}</div></div></div><div style="text-align:right"><div class="red" style="font-size:13px;font-weight:600">CHF ${c.deviation.toFixed(2)}</div><div class="red" style="font-size:11px">${c.deviationPercent.toFixed(1)}%</div></div></div>`).join(''):'<div class="empty">Kein Konkurrent ist günstiger</div>';
+}
+
+// ─── RENDER ANALYSIS ───
+function renderAnalysis(){
+  const cmap=Object.fromEntries(S.competitors.map(c=>[c.id,c.name]));
+  const pmap=Object.fromEntries(S.products.map(p=>[p.id,p]));
+  const search=document.getElementById('a-search').value.toLowerCase();
+  const cat=document.getElementById('a-cat').value,brand=document.getElementById('a-brand').value,comp=document.getElementById('a-comp').value;
+  const cats=[...new Set(S.products.map(p=>p.category).filter(Boolean))];
+  const brands=[...new Set(S.products.map(p=>p.brand).filter(Boolean))];
+  document.getElementById('a-cat').innerHTML='<option value="">Alle Kategorien</option>'+cats.map(c=>`<option value="${c}"${cat===c?' selected':''}>${c}</option>`).join('');
+  document.getElementById('a-brand').innerHTML='<option value="">Alle Marken</option>'+brands.map(b=>`<option value="${b}"${brand===b?' selected':''}>${b}</option>`).join('');
+  document.getElementById('a-comp').innerHTML='<option value="">Alle Konkurrenten</option>'+S.competitors.map(c=>`<option value="${c.id}"${comp===c.id?' selected':''}>${c.name}</option>`).join('');
+  let rows=S.priceEntries.map(pe=>{const prod=pmap[pe.product_id];if(!prod)return null;return{id:pe.id,productName:prod.name,brand:prod.brand,category:prod.category,ourPrice:prod.our_price,competitorId:pe.competitor_id,competitorPrice:pe.price,productUrl:pe.product_url};}).filter(Boolean);
+  if(search)rows=rows.filter(r=>r.productName.toLowerCase().includes(search)||(r.brand&&r.brand.toLowerCase().includes(search)));
+  if(cat)rows=rows.filter(r=>r.category===cat);if(brand)rows=rows.filter(r=>r.brand===brand);if(comp)rows=rows.filter(r=>r.competitorId===comp);
+  document.getElementById('a-total').textContent=rows.length;
+  document.getElementById('a-cheap').textContent=rows.filter(r=>r.competitorPrice<r.ourPrice).length;
+  document.getElementById('a-exp').textContent=rows.filter(r=>r.competitorPrice>r.ourPrice).length;
+  document.getElementById('a-sig').textContent=rows.filter(r=>r.ourPrice&&Math.abs((r.competitorPrice-r.ourPrice)/r.ourPrice)*100>=10).length;
+  document.getElementById('a-tbody').innerHTML=rows.length?rows.map(r=>{const dev=r.ourPrice?r.competitorPrice-r.ourPrice:null;const pct=dev!=null&&r.ourPrice?(dev/r.ourPrice)*100:null;return`<tr><td>${r.productUrl?`<a href="${r.productUrl}" target="_blank" style="color:var(--text)">${r.productName}</a>`:r.productName}</td><td>${r.brand||'—'}</td><td>${r.category||'—'}</td><td style="font-weight:600">${fmt(r.ourPrice)}</td><td>${cmap[r.competitorId]||'?'}</td><td style="font-weight:600">${fmt(r.competitorPrice)}</td><td class="${dev<0?'red':dev>0?'green':''}" style="font-weight:600">${dev!=null?(dev>0?'+':'')+' CHF '+dev.toFixed(2):'—'}</td><td><span class="badge ${pct!=null?(pct<0?'br':pct>0?'bgr':'bg'):'bg'}">${pct!=null?(pct>0?'+':'')+pct.toFixed(1)+'%':'—'}</span></td></tr>`}).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--text2);padding:32px">Keine Einträge</td></tr>';
+}
+
+// ─── RENDER REPORTING ───
+function renderReporting(){
+  const cmap=Object.fromEntries(S.competitors.map(c=>[c.id,c.name]));
+  const pmap=Object.fromEntries(S.products.map(p=>[p.id,p]));
+  const monitored=S.products.filter(p=>p.monitored);
+  document.getElementById('r-watch-cnt').textContent=`${monitored.length} / ${S.products.length}`;
+  document.getElementById('r-watchlist').innerHTML=S.products.length?S.products.map(p=>`<div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border)"><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.name}</div><div style="font-size:11px;color:var(--text2)">${p.brand||p.category||'—'}</div></div><button class="switch ${p.monitored?'on':''}" onclick="toggleMonitor('${p.id}',this)"></button></div>`).join(''):'<div class="empty">Keine Produkte</div>';
+  const monIds=new Set(monitored.map(p=>p.id));
+  const rel=S.snapshots.filter(s=>monIds.has(s.product_id));
+  const changed=rel.filter(s=>s.previous_price!=null&&s.change!==0);
+  document.getElementById('r-snaps').textContent=rel.length;
+  document.getElementById('r-changes').textContent=changed.length;
+  document.getElementById('r-last').textContent=rel.length?fmtDate(rel[0].snapshot_date):'—';
+  document.getElementById('r-changes-table').innerHTML=changed.length?`<div style="overflow-x:auto"><table><thead><tr><th>Zeitpunkt</th><th>Produkt</th><th>Konkurrent</th><th style="text-align:right">Vorher</th><th style="text-align:right">Nachher</th><th style="text-align:right">Änderung</th></tr></thead><tbody>${changed.map(s=>{const prod=pmap[s.product_id];const isD=s.change<0;return`<tr><td style="font-size:11px;color:var(--text2)">${fmtDate(s.snapshot_date)}</td><td style="font-weight:600">${prod?.name||'?'}</td><td style="font-size:11px;color:var(--text2)">${cmap[s.competitor_id]||'?'}</td><td style="text-align:right;font-size:12px">${fmt(s.previous_price)}</td><td style="text-align:right;font-weight:600">${fmt(s.price)}</td><td style="text-align:right"><span class="badge ${isD?'bgr':'br'}">${s.change>0?'+':''}${s.change.toFixed(2)} CHF</span></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Noch keine Preisveränderungen.</div>';
+  document.getElementById('r-snaps-table').innerHTML=rel.length?`<div style="overflow-x:auto"><table><thead><tr><th>Zeitpunkt</th><th>Produkt</th><th>Konkurrent</th><th style="text-align:right">Preis</th><th style="text-align:right">Trend</th></tr></thead><tbody>${rel.slice(0,80).map(s=>{const prod=pmap[s.product_id];return`<tr><td style="font-size:11px;color:var(--text2)">${fmtDate(s.snapshot_date)}</td><td style="font-weight:600">${prod?.name||'?'}</td><td style="font-size:11px;color:var(--text2)">${cmap[s.competitor_id]||'?'}</td><td style="text-align:right;font-weight:600">${fmt(s.price)}</td><td style="text-align:right"><span class="${s.change<0?'green':s.change>0?'red':''}" style="font-size:11px;font-weight:600">${s.change!==0?(s.change>0?'+':'')+s.change.toFixed(2):'—'}</span></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Noch keine Snapshots.</div>';
+}
+
+function toggleMonitor(id,btn){
+  const p=S.products.find(p=>p.id===id);p.monitored=!p.monitored;
+  btn.classList.toggle('on',p.monitored);
+  document.getElementById('r-watch-cnt').textContent=`${S.products.filter(p=>p.monitored).length} / ${S.products.length}`;
+}
+
+renderDashboard();
+</script>
+</body>
+</html>
